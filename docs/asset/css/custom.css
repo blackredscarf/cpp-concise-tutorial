@@ -1,0 +1,24 @@
+/* https://jhildenbiddle.github.io/docsify-themeable/#/customization?id=theme */
+:root {
+    --base-font-size: 18px;
+    /* --theme-color   : purple; */
+  }
+
+body {
+    font-size: 17px;
+}
+
+.sidebar ul li a {
+    font-size: 15px;
+}
+
+.sidebar ul li a strong {
+    font-size: 16px;
+}
+
+/* .markdown-section table, 
+.markdown-section a, 
+.markdown-section p, 
+.markdown-section li {
+    font-size: 16px;
+} */
