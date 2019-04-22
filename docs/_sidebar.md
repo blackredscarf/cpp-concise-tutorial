@@ -1,5 +1,5 @@
 
-* [前言](/)
+* [C++ 简明教程](/)
 * [安装](cpp-install.md)
 * [变量](cpp-variable.md)
 * [常量](cpp-constant.md)
