@@ -234,10 +234,10 @@ VehicleName: car1
 - 保护继承（protected）： 当一个类派生自**保护**基类时，基类的**公有**和**保护**成员将成为派生类的**保护**成员。
 - 私有继承（private）：当一个类派生自**私有**基类时，基类的**公有**和**保护**成员将成为派生类的**私有**成员。
 
-![20190317143706.png](https://i.loli.net/2019/03/17/5c8deb169789f.png)
+![](https://i.loli.net/2019/03/17/5c8deb169789f.png)
 (From [here](https://www.geeksforgeeks.org/inheritance-in-c/))
 
-
+### 6.1 protected 成员
 值得一提的是`protected`保护成员，它的作用只有在继承关系中体现出来。比如上面的例子中，我们把name变为protected:
 ```cpp
 protected:
@@ -249,14 +249,7 @@ protected:
 cout << "VehicleName: " << name << endl;
 ```
 
-
-C++ 支持多继承:
-```cpp
-class Car: public Vehicle, public FourWheeler { 
-  
-}; 
-```
-
+### 6.2 初始化参数列表
 关于继承，还有一些重要的细节问题。你会发现只有构造函数可以带有`:`的参数列表初始化。因为这东西是为继承而准备的。
 
 如果派生类在新建对象时没有在参数列表调用基类的构造函数，那么将自动调用基类的无参构造函数或默认构造函数。
@@ -299,98 +292,107 @@ B() : A(3) {
 同理，若想在一个构造函数里面调用同类的另一个构造函数，也要在参数列表里面调用。
 
 
-### 6.1 虚继承
+## 7. 多继承
+C++ 支持多继承:
 ```cpp
-class D{......};
-class B: public D{......};
-class A: public D{......};
-class C: public B, public A{.....};
-```
-上面的继承关系中，C将会继承了两次D。为了排除这种问题，你需要这么干：
-```cpp
-A: virtual public D
-B: virtual public D
+class Car: public Vehicle, public FourWheeler { 
+  
+}; 
 ```
 
-## 7. 多态
-多态允许派生类重载基类的方法。只要对基类方法加上关键字`virtual`即可。<span id="polymorphism"></span>
+### 7.1 构造和析构的顺序
+
+对于构造函数：
+- 如果发现该类继承了某个基类，一定是优先初始化其基类。
+- 如果继承了多个基类，那么执行顺序取决于声明派生类时所指定的各个基类的顺序（从左到右）
+
+而析构函数的执行顺序与构造函数执行顺序相反，即后初始化的一定会先被析构。
+
+
+### 8. 虚继承
+既然存在多继承，那么就可能存在一个类被多个类继承。当继承路径从一个起点类出发，并产生相交于某一个类时，交点类会被初始化两次，即产生两个实例。
 ```cpp
-#include <iostream>
-using namespace std;
-
-class Vehicle {
+class A {
+    int a_;
 public:
-    // 虚函数
-    virtual void start() {
-        cout << "vehicle start" << endl;
-    }
-    // 纯虚函数（不实现）
-    virtual void drive() = 0;
-};
-
-class Car: public Vehicle {
-public:
-    // 重载基类虚函数
-    void start() override {
-        // 调用基类函数
-        Vehicle::start();
-        cout << "car start" << endl;
-    }
-    void drive() override {
-        cout << "drive car" << endl;
+    A(int a): a_(a) {}
+    int getA(){
+        return a_;
     }
 };
 
-class Bus: public Vehicle {
+class B: public A {
+    int b_;
 public:
-    void start() override {
-        Vehicle::start();
-        cout << "bus start" << endl;
-    }
-    void drive() override {
-        cout << "drive bus" << endl;
-    }
+    B(int a, int b): A(a), b_(b) {}
 };
+
+class C: public A {
+    int c_;
+public:
+    C(int a, int c): A(a), c_(c) {}
+};
+
+class D: public B, public C {
+    int d_;
+public:
+    D(int a, int b, int c, int d): 
+    // 此处对a值做不同的处理
+    B(a + 100, b), C(a - 100, c), d_(d) {}
+};
+
 
 int main(){
-    Bus bus = Bus();
-    Car car = Car();
-
-    // 用基类引用来获得其派生类对象
-    Vehicle& busv = bus;
-    Vehicle& carv = car;
-    // 或者使用指针类型
-    // Vehicle* busv = new Bus();
-    // Vehicle* carv = new Car();
-
-    busv.start();
-    carv.start();
-
-    busv.drive();
-    carv.drive();
+    D d = D(1, 2, 3, 4);
+//    d.getA();   // error
+    cout << d.B::getA() << endl; // 101
+    cout << d.C::getA() << endl; // -99
 }
 ```
-输出：
+而且起点类无法调用交点类的方法，两份实例意味着两个同名方法，程序不知道该调用哪个。
+
+
+这时候使用虚继承可以使得该交点类只保留一个实例，我们称该交点类为**虚基类**。虚继承需要声明在交点类的直接派生类中，虚继承的声明方法是`: virtual public <Base>`。虚继承后，起点类将优先初始化虚基类。
+```cpp
+class A {
+    int a_;
+public:
+    A(int a): a_(a) {}
+    int getA(){
+        return a_;
+    }
+};
+
+class B: virtual public A {
+    int b_;
+public:
+    B(int a, int b): A(a), b_(b) {}
+};
+
+class C: virtual public A {
+    int c_;
+public:
+    C(int a, int c): A(a), c_(c) {}
+};
+
+class D: public B, public C {
+    int d_;
+public:
+    D(int a, int b, int c, int d):
+    // 发现虚基类A，则此处必须先初始化A，否则会报错
+    A(a), B(a + 100, b), C(a - 100, c), d_(d) {}
+};
+
+
+int main(){
+    D d = D(1, 2, 3, 4);
+    cout << d.getA() << endl; // 1
+    cout << d.B::getA() << endl; // 1
+    cout << d.C::getA() << endl; // 1
+}
 ```
-vehicle start
-bus start
-vehicle start
-car start
-drive bus
-drive car
-```
-因为C++支持多继承，所以没有像java那样的super关键字，若要调用基类方法，可以使用上面例子的方法`Vehicle::start()`。
 
-C++中的自动变量不能像java那样在`Vehicle bus = Bus()`直接用基类型来接收其派生类，必须是实例化一个派生类对象，然后再用基类对象去引用。
-
-## 8. 抽象类和接口
-C++中没有关键字声明抽象类和接口，是通过一些特征来区分的。
-
-抽象类：只要存在一个虚函数，就是抽象类。
-
-接口：
-1. 类中没有定义任何成员变量 
-2. 类中所有成员函数都是公有且都是纯虚函数
+![](img/virtual-inherit.jpg)
 
 ## 9. class和struct的区别
 - 使用 class 时，类中的成员默认都是 private 属性的；而使用 struct 时，结构体中的成员默认都是 public 属性的。
