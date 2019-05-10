@@ -135,6 +135,7 @@ int main() {
 
 调用形式为：
 > (类实例.*函数指针名称)()
+
 ```cpp
 class Person {
 public:
