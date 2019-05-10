@@ -129,7 +129,6 @@ int main() {
 }
 ```
 
-
 成员函数的函数指针定义形式：
 > 返回类型 (类名::*函数指针名称)(参数列表) = &类名::函数名
 
@@ -185,111 +184,111 @@ int main() {
 ```cpp
 class Base {
 public:
-    // 默认值1和2
-    Base(int mem1 = 1, int mem2 = 2) : bmem1_(mem1), bmen2_(mem2) { ; }
+	// 默认值1和2
+	Base(int mem1 = 1, int mem2 = 2) : bmem1_(mem1), bmen2_(mem2) { ; }
 
-    virtual void bfunc1() { std::cout << "In bfunc1()" << std::endl; }
-    virtual void bfunc2() { std::cout << "In bfunc2()" << std::endl; }
-    virtual void bfunc3() { std::cout << "In bfunc3()" << std::endl; }
+	virtual void bfunc1() { std::cout << "In bfunc1()" << std::endl; }
+	virtual void bfunc2() { std::cout << "In bfunc2()" << std::endl; }
+	virtual void bfunc3() { std::cout << "In bfunc3()" << std::endl; }
 
 private:
-    int bmem1_;
-    int bmen2_;
+	int bmem1_;
+	int bmen2_;
 };
 
 class Devired : public Base {
 public:
-    // 默认值3
-    Devired(int mem = 3) : dbmem1_(mem) { ; }
+	// 默认值3
+	Devired(int mem = 3) : dmen1_(mem) { ; }
 
-    // 覆盖基类的虚函数
-    void bfunc2() override { std::cout << "In Devired bfunc2()" << std::endl; }
-    // 派生类的虚函数
-    virtual void dfunc1() { std::cout << "In Devired dfunc1()" << std::endl; }
-    // 非虚函数
-    void ndfunc1() { std::cout << "In Devired ndfunc1" << std::endl; }
+	// 覆盖基类的虚函数
+	void bfunc2() override { std::cout << "In Devired bfunc2()" << std::endl; }
+	// 派生类的虚函数
+	virtual void dfunc1() { std::cout << "In Devired dfunc1()" << std::endl; }
+	// 非虚函数
+	void ndfunc1() { std::cout << "In Devired ndfunc1" << std::endl; }
 private:
-    int dbmem1_;
+	int dmen1_;
 };
 
 typedef void func(void);
 func* FUNC(void *pf) {
-    func* f1 = (func*)pf;
-    return f1;
+	func* f1 = (func*)pf;
+	return f1;
 }
 
 // 观察基类
 void watch_base() {
-    Base b;
+	Base b;
 
-    // 对象b的地址
-    long* bAddress = (long*) &b;
+	// 对象b的地址
+	long* bAddress = (long*) &b;
 
-    // 对象b的vtptr的值
-    long* vtptr = (long*) *(bAddress + 0);
-    printf("vtptr: 0x%08x\n", vtptr);
+	// 对象b的vtptr的值
+	long* vtptr = (long*) *(bAddress + 0);
+	printf("vtptr: 0x%08x\n", vtptr);
 
-    // 对象b的第一个虚函数的地址
-    void* pFunc1 = (void*) *(vtptr + 0);
-    void* pFunc2 = (void*) *(vtptr + 1);
-    void* pFunc3 = (void*) *(vtptr + 2);
+	// 对象b的第一个虚函数的地址
+	void* pFunc1 = (void*) *(vtptr + 0);
+	void* pFunc2 = (void*) *(vtptr + 1);
+	void* pFunc3 = (void*) *(vtptr + 2);
 
-    // 调用虚函数
-    (FUNC(pFunc1))();
-    (FUNC(pFunc2))();
-    (FUNC(pFunc3))();
+	// 调用虚函数
+	(FUNC(pFunc1))();
+	(FUNC(pFunc2))();
+	(FUNC(pFunc3))();
 
-    cout << endl;
-    printf("\t bfunc1 addr: 0x%08x \n"
-           "\t bfunc2 addr: 0x%08x \n"
-           "\t bfunc3 addr: 0x%08x \n",
-           pFunc1,
-           pFunc2,
-           pFunc3);
+	cout << endl;
+	printf("\t bfunc1 addr: 0x%08x \n"
+		"\t bfunc2 addr: 0x%08x \n"
+		"\t bfunc3 addr: 0x%08x \n",
+		pFunc1,
+		pFunc2,
+		pFunc3);
 
-    // 对象b的两个成员变量的值（用这种方式可轻松突破private不能访问的限制）
-    int mem1 = (int) *(bAddress + 1);
-    int mem2 = (int) *(bAddress + 2);
-    cout << endl;
-    printf("bmem1_: %d \nbmen2_: %d \n\n", mem1, mem2);
+	// 对象b的两个成员变量的值（用这种方式可轻松突破private不能访问的限制）
+	int mem1 = (int) *(bAddress + 1);
+	int mem2 = (int) *(bAddress + 2);
+	cout << endl;
+	printf("bmem1_: %d \nbmen2_: %d \n\n", mem1, mem2);
 }
 
 // 观察派生类
 void watch_devired() {
-    Devired d;
-    long *dAddress = (long*) &d;
+	Devired d;
+	long *dAddress = (long*) &d;
 
-    // 虚表地址
-    long *vtptr = (long*) *(dAddress + 0);
+	// 虚表地址
+	long *vtptr = (long*) *(dAddress + 0);
 
-    // 数据成员的地址
-    int bmem1 = (int) *(dAddress + 1);
-    int bmem2 = (int) *(dAddress + 2);
-    int dmem1 = (int) *(dAddress + 3);
+	// 数据成员的地址
+	int bmem1 = (int) *(dAddress + 1);
+	int bmem2 = (int) *(dAddress + 2);
+	int dmem1 = (int) *(dAddress + 3);
 
-    // 函数地址
-    void* pFunc1 = (void*) *(vtptr + 0);
-    void* pFunc2 = (void*) *(vtptr + 1);
-    void* pFunc3 = (void*) *(vtptr + 2);
-    void* pdFunc1 = (void*) *(vtptr + 3);
+	// 函数地址
+	void* pFunc1 = (void*) *(vtptr + 0);
+	void* pFunc2 = (void*) *(vtptr + 1);
+	void* pFunc3 = (void*) *(vtptr + 2);
+	void* pdFunc1 = (void*) *(vtptr + 3);
 
-    (FUNC(pFunc1))();
-    (FUNC(pFunc2))();
-    (FUNC(pFunc3))();
-    (FUNC(pdFunc1))();
+	(FUNC(pFunc1))();
+	(FUNC(pFunc2))();
+	(FUNC(pFunc3))();
+	(FUNC(pdFunc1))();
 
-    cout << endl;
-    printf("\t bfunc1 addr: 0x%08x \n"
-           "\t bfunc2 addr: 0x%08x \n"
-           "\t bfunc3 addr: 0x%08x \n"
-           "\t dfunc1 addr: 0x%08x \n\n",
-           pFunc1,
-           pFunc2,
-           pFunc3,
-           pdFunc1
-    );
+	cout << endl;
+	printf("\t bfunc1 addr: 0x%08x \n"
+		"\t bfunc2 addr: 0x%08x \n"
+		"\t bfunc3 addr: 0x%08x \n"
+		"\t dfunc1 addr: 0x%08x \n\n",
+		pFunc1,
+		pFunc2,
+		pFunc3,
+		pdFunc1
+	);
 
-    printf("bmem1: %d\nbmem2: %d\ndmem3: %d\n\n\n", bmem1, bmem2, dmem1);
+	printf("bmem1: %d\nbmem2: %d\ndmem1: %d\n\n\n", bmem1, bmem2, dmem1);
 }
 
 int main() {
@@ -302,8 +301,34 @@ int main() {
 }
 ```
 最终输出：(代码运行在Visual Studio)
+```cpp
+vtptr: 0x00fd9b34
+In bfunc1()
+In bfunc2()
+In bfunc3()
 
-![](https://i.loli.net/2019/05/10/5cd59d39268af.png)
+         bfunc1 addr: 0x00fd1032
+         bfunc2 addr: 0x00fd137f
+         bfunc3 addr: 0x00fd11a9
+
+bmem1_: 1
+bmen2_: 2
+
+----------------
+In bfunc1()
+In Devired bfunc2()
+In bfunc3()
+In Devired dfunc1()
+
+         bfunc1 addr: 0x00fd1032
+         bfunc2 addr: 0x00fd1393
+         bfunc3 addr: 0x00fd11a9
+         dfunc1 addr: 0x00fd11f9
+
+bmem1: 1
+bmem2: 2
+dmem1: 3
+```
 
 你会发现，派生类没有覆盖`bfunc1`和`bfunc2`虚函数，所以它们打印出的地址是一样的。而派生类覆盖了`bfunc2`，导致派生类的虚函数表的`bfunc2`的地址被更新，所以它与基类中的地址不同。
 
