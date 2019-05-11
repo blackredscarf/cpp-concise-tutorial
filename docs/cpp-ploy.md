@@ -175,7 +175,7 @@ int main() {
 ### 虚函数表
 每一个具有虚函数的类对象，对象的内存首地址都会维护一个vtptr指针，该指针指向一个虚函数表。那么这和多态有什么关系呢？
 
-先下结论：**每一个对象实例都会维护一个虚函数表，这里的实例也包括继承实例**。当存在继承关系，基类实例会维护一张自己的虚函数表，而派生类会将基类的虚函数表复制一份到自己那里。如果派生类覆盖了基类某个虚函数，则会将自己的虚函数表对应的虚函数更换一个新地址，而不会影响基类虚函数表上的地址。
+先下结论：**同一类型的对象实例会维护一个虚函数表，这里的对象实例也包括继承中的基类实例**。当存在继承关系，派生类实例的虚函数表是基类实例的拷贝，如果派生类新增虚函数，则在自己的虚函数表中添加一条记录；如果派生类覆盖了基类某个虚函数，则会将自己的虚函数表对应的虚函数更换一个新地址，而不会影响基类虚函数表上的地址。
 
 上面的理论说明了，尽管你用基类引用一个派生类，虚函数还是会使用派生类的而不是基类的，是因为当调用虚函数时，就会通过对象内存首地址访问虚函数表，并查找你要调用的虚函数。尽管类型声明是基类，但访问的仍然是派生类的虚函数表。而当你通过基类实例调用方法`devired.Base::function()`，那么就会访问基类的虚函数表，从而调用基类的实现。
 
@@ -260,6 +260,7 @@ void watch_devired() {
 
 	// 虚表地址
 	long *vtptr = (long*) *(dAddress + 0);
+	printf("vtptr: 0x%08x\n", vtptr);
 
 	// 数据成员的地址
 	int bmem1 = (int) *(dAddress + 1);
@@ -288,7 +289,7 @@ void watch_devired() {
 		pdFunc1
 	);
 
-	printf("bmem1: %d\nbmem2: %d\ndmem1: %d\n\n\n", bmem1, bmem2, dmem1);
+	printf("bmem1: %d\nbmem2: %d\ndmem1: %d\n\n", bmem1, bmem2, dmem1);
 }
 
 int main() {
@@ -302,35 +303,71 @@ int main() {
 ```
 最终输出：(代码运行在Visual Studio)
 ```cpp
-vtptr: 0x00fd9b34
+vtptr: 0x00179b34
 In bfunc1()
 In bfunc2()
 In bfunc3()
 
-         bfunc1 addr: 0x00fd1032
-         bfunc2 addr: 0x00fd137f
-         bfunc3 addr: 0x00fd11a9
+         bfunc1 addr: 0x00171028
+         bfunc2 addr: 0x00171366
+         bfunc3 addr: 0x00171195
 
 bmem1_: 1
 bmen2_: 2
 
 ----------------
+vtptr: 0x00179b78
 In bfunc1()
 In Devired bfunc2()
 In bfunc3()
 In Devired dfunc1()
 
-         bfunc1 addr: 0x00fd1032
-         bfunc2 addr: 0x00fd1393
-         bfunc3 addr: 0x00fd11a9
-         dfunc1 addr: 0x00fd11f9
+         bfunc1 addr: 0x00171028
+         bfunc2 addr: 0x00171375
+         bfunc3 addr: 0x00171195
+         dfunc1 addr: 0x001711e5
 
 bmem1: 1
 bmem2: 2
 dmem1: 3
 ```
-
 你会发现，派生类没有覆盖`bfunc1`和`bfunc2`虚函数，所以它们打印出的地址是一样的。而派生类覆盖了`bfunc2`，导致派生类的虚函数表的`bfunc2`的地址被更新，所以它与基类中的地址不同。
+
+实验2，我们把main函数改成如下：
+```cpp
+int main() {
+    watch_devired();
+    cout << "----------------" << endl;
+    watch_devired();
+    
+    system("pause");
+    return 0;
+}
+```
+打印两个派生类的实例，最终结果两者输出完全一样，包括虚函数表的地址。说明，同一类型的不同实例使用的是同一张虚函数表。
+
+实验3，尝试用基类引用派生类。
+```cpp
+// 观察基类引用派生类
+void watch_base_ref_revired() {
+    Devired d;
+    Base &b = d;
+    long *dAddress = (long*)&b;
+    
+    // ...
+}
+
+int main() {
+    watch_base_ref_revired();
+    cout << "----------------" << endl;
+    watch_devired();
+    
+    system("pause");
+    return 0;
+}
+```
+最终结果，两次输出的虚函数表地址相同。说明尽管类型变成了基类，但虚函数表仍然是派生类的。
+
 
 ## 参考
 - [深入分析C++虚函数表](https://jocent.me/2017/08/07/virtual-table.html)
