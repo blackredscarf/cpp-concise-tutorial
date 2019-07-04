@@ -2,7 +2,7 @@
 
 标准模板库 (Standard Template Library, STL) 是C++内置的模板库，包含 Adaptor, Function Object, Iterator, Container, Algorithm 几个模块。
 
-![](img/stl.png)
+![stl.png](https://i.loli.net/2019/07/04/5d1df5492d1b264877.png)
 
 Adaptor 适配器通过修改其它类的接口，使适配器满足一定需求，可分为容器适配器、迭代器适配器和函数对象适配器三种。
 
