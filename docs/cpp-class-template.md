@@ -96,6 +96,7 @@ p2.print();    // 1: d 2: defualt int
 ```
 
 ## 3. 模板作为参数
+将一个模板类作为另一个模板类的模板参数。
 ```cpp
 template <typename T>
 class MiniBox {
@@ -111,7 +112,6 @@ class BigBox {
 ```cpp
 BigBox<MiniBox, double> bm;
 ```
-
 
 ## 4. 模板别名
 C++11中加入了模板别名，我们能够对模板的某些参数做一些预设值，来简化我们的使用。
@@ -129,6 +129,20 @@ template <int n>
 using arrDouble = std::array<double, n>;
 arrDouble<10> a1;
 arrDouble<10> a2;
+```
+
+## 5. 友元模板函数
+友元函数属于外部函数，你需要额外声明一个模板给它。
+```cpp
+template<typename U>
+friend ostream& operator<<(ostream& os, DynamicArray<U>& da);
+```
+```cpp
+template<typename U>
+ostream& operator<<(ostream& os, DynamicArray<U>& da) {
+    // ...
+    return os;
+}
 ```
 
 ## 总结

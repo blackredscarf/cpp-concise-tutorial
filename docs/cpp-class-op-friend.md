@@ -4,7 +4,6 @@ c++可重载的运算符有：
 
 ![20190306172336.png](https://i.loli.net/2019/03/06/5c7f919a673c6.png)
 
-
 ## 加法重载
 创建前缀为`operator`的函数，如：
 ```cpp
@@ -32,7 +31,27 @@ int main(){
 }
 ```
 
-## 函数对象
+## 赋值运算符重载
+写赋值运算符时需要注意三点，
+- 函数返回该类的类型 (主要目的是用于链式赋值 a = b = c)
+- 比较是否是同一地址
+- 清空已有数据
+```cpp
+Book & Book::operator=(Book & book) {
+    if (this == &book) {
+        return *this;
+    }
+    if (name_ != nullptr) {
+        delete[] name_;
+    }
+    isbn_ = book.isbn_;
+    price_ = book.price_;
+    strcpy(name_, book.name_);
+    return *this;
+}
+```
+
+## 括号运算符重载
 重载`operator()`运算符。
 ```cpp
 class Linear {
@@ -50,13 +69,32 @@ int main(){
 }
 ```
 
+## 前自增和后自增
+```cpp
+struct X {
+    int num = 0;
+    X& operator++() {   // 前自增
+        num++;
+        return *this;
+    }
+    X operator++(int) { // 后自增
+        X tmp(*this); // copy
+        operator++(); // pre-increment
+        return tmp;   // return old value
+    }
+};
+```
+
+## 返回左值
+其中`[]`，`()`可以作为左值，如果你想达成这种效果`obj[0] = obj`，那么重载函数时，你需要返回的是一个引用。
 
 ## 友元函数
-所谓友元函数，即通过外部函数访问对象中的成员。
+所谓友元函数，即允许在外部函数中通过对象实例访问该对象的所有成员。
 ```cpp
 class Box{
    double width;
 public:
+   // 定义友元函数 
    friend void printWidth(Box box);
    void setWidth(double wid);
 };
@@ -129,6 +167,21 @@ operator<<(std::cout, A);
 std::cout << A;
 ```
 
+### 限制
+C++标准限制了`=`，`()`，`[]`，`->`四种运算符只能重载为成员函数，不能是友元函数。对于`=`，如果你不重载一个成员函数，那么类会默认重载一个，而你又写了友元函数，则会产生冲突。而`()`，`[]`，`->`这三者作为友元函数应该是无害的，但C++的作者保守地禁用了这一功能 [*[quora]*](https://www.quora.com/C++-Why-do-operators-and-cant-be-overloaded-as-non-member-functions-I-couldnt-find-any-proper-answer)。
+
+而必须重载成友元函数的有`>>`和`<<`，因为输入和输出的左边总是需要一个istream和ostream。
+
+## 逻辑运算符
+逻辑运算符被推荐重载为友元函数。函数返回bool。
+```cpp
+inline bool operator==(const X& lhs, const X& rhs){  }
+inline bool operator!=(const X& lhs, const X& rhs){  }
+inline bool operator< (const X& lhs, const X& rhs){  }
+inline bool operator> (const X& lhs, const X& rhs){  }
+inline bool operator<=(const X& lhs, const X& rhs){  }
+inline bool operator>=(const X& lhs, const X& rhs){  }
+```
 
 ## 友元类
 当在一个类中声明了一个友元类“好朋友”后，那么这个“好朋友”就可以使用该类的所有成员。
@@ -158,7 +211,7 @@ int main(){
     s2.getS1Data(s1);   // 10
 }
 ```
-当然，虽然S1说S2是好朋友，但也只是单方面的，S2并不一定认为S1是他的好朋友，所以S1不能访问S2的成员。
+当然，虽然S1说S2是好朋友，但也只是单方面的，S2并不一定认为S1是他的好朋友，所以S1不能访问S2的非公开成员。
 
 
 ## 总结

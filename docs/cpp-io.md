@@ -32,7 +32,7 @@ char a[10];
 cin >> a;
 ```
 
-cin.getline(string, size) 读取一行到字符串中。把回车符换成\0。
+cin.getline(char*, size) 读取一行到字符串中。把回车符换成\0。
 ```cpp
 char name[10];
 std::cin.getline(name, 10);
@@ -40,9 +40,14 @@ std::cin.getline(name, 10);
 
 ![20190306221919.png](https://i.loli.net/2019/03/06/5c7fd6eae83eb.png)
 
-cin.get(name, 10) 也是读一行，但不读取也不丢弃回车，而是留在输入队列里。由于第一次调用后，换行符将留在输入队列中，因此第二次调用时看到的第一个字符便是换行符。
+cin.get(char) 读一个字符，而 cin.get(char*, size) 也是读一行，但不读取也不丢弃回车，而是留在输入队列里。由于第一次调用后，换行符将留在输入队列中，因此第二次调用时看到的第一个字符便是换行符。解决办法就是调用一个不带参数的`get()`把回车吃掉。
 
-解决办法就是调用一个不带参数的`get()`把回车吃掉。
+cin.read(char*, size) 读入标准输入的前count个字符。
+```cpp
+char data[20];
+cin.read(data, 10);
+cout << data << endl;
+```
 
 ## 混合类型输入
 比如我们想先输入一个整型，再输入一个字符串。
@@ -73,6 +78,19 @@ getline(std::cin, str1);
 cout << "hello world" << flush;
 ```
 也可以直接调用`flush(cout)`。
+
+## 快速输入输出
+很多程序竞赛选手会吐槽C++的IO很慢，但实际上，cin和cout会默认与stdio进行同步，所以才导致了很慢，好处是避免混用printf和cout而造成的输出顺序和代码语句不一致的问题。我们可以关掉同步，但结果是你不能同时使用printf和cout，cin和scanf。
+
+还有就是，默认的情况下cin和cout绑定，每次cin之前都会把输出缓冲区的数据刷新，即调用flush。好处是避免了明明先cout输出，但命令行窗口中cin的读入数据在cout输出数据之前。坏处是影响cin的效率，可以用 cin.tie(0) 关掉绑定。
+```cpp
+#include <iostream>
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(0);
+    // IO
+}
+```
 
 ## 格式化输出
 
