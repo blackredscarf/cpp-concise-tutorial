@@ -244,7 +244,7 @@ VehicleName: car1
 protected:
     string name;
 ```
-那么在基类中就可以直接访问，而不需要通过公有方法来访问。
+那么在派生类中就可以直接访问，而不需要通过公有方法来访问。
 ```cpp
 // cout << "VehicleName: " << getName() << endl;
 cout << "VehicleName: " << name << endl;
