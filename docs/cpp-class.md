@@ -474,4 +474,58 @@ int main(){
     cout << G::getG() << endl; // 100
 ```
 
+## 12 const 对象
+我们可以标注一个函数为 const 。
+```cpp
+void say() const;
+```
+一个const的成员函数是不能够修改非静态的成员属性的。
+```cpp
+class A {
+public:
+    int v1;
+    static int v2;
+    void say() const {
+        v1 = 1; // error
+        v2 = 1;
+        cout << "hello" << endl;
+    }
+};
+```
+
+一个 const 的对象只能调用其 const 的成员函数。
+```cpp
+class A {
+public:
+    void say() const {
+        cout << "hello" << endl;
+    }
+    void eat() {
+        cout << "eat" << endl;
+    }
+};
+
+int main() {
+    const A a;
+    a.say();
+    a.eat(); // error
+    return 0;
+}
+```
+这个特性告诉我们，**在写成员函数时最好正确标注 const 函数**，因为我们不知道使用这个类的人会不会去创建一个const实例。
+
+还有另一个问题，那就是函数参数应不应该使用const？
+```cpp
+class B{
+    void sayByA(const A& a) {
+        a.say();  // say() 必须是const的
+    }
+};
+```
+比如上面这个例子，因为A是我自己写的，我很清楚 a.say() 是const函数，我可以放心的把参数标上const。
+
+但万一有时候我们把外部代码的类作为参数，又要调用其中的某个方法，虽然知道方法确实不会修改成员属性，但我们也不确定作者是否有标注为const函数。
+
+有个比较好的方案是，自己写的代码自己清楚，该标注const都标上。别人的代码不清楚，则看看使用对象时有没有调用函数，若是不需要调用函数，则标上const，若是需要调用函数，则不标注。当然使用IDE的话，可以直接跑到头文件看源码里的声明。
+
 

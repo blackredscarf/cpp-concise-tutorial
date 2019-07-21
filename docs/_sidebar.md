@@ -16,9 +16,10 @@
 * [STL](cpp-stl.md)
 * [输入输出](cpp-io.md)
 * [文件](cpp-file.md)
-* [智能指针](cpp-intel-point.md)
-* [移动语义](cpp-move.md)
 * [lambda](cpp-lambda.md)
 * [正则表达式](cpp-regex.md)
+* [智能指针](cpp-intel-point.md)
+* [移动语义](cpp-move.md)
 * [现代 c++](cpp-modern.md)
-
+* [traits](cpp-traits.md)
+* [allocator](cpp-allocator.md)
