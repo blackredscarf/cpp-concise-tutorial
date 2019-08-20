@@ -479,7 +479,7 @@ int main(){
 ```cpp
 void say() const;
 ```
-一个const的成员函数是不能够修改非静态的成员属性的。
+一个const的成员函数是不能够修改非静态的成员属性的。默认传入函数内部的 this 指针也将变成 const 类型。
 ```cpp
 class A {
 public:
