@@ -134,7 +134,8 @@ public:
 };
 
 int main(){
-    const City* c1 = new City(1);
+    City c0 = City(1);
+    const City* c1 = &c0;
     // c1->setCode(3); // invaild
 
     City* c2 = const_cast<City *>(c1);
@@ -144,8 +145,14 @@ int main(){
     const City* c3 = const_cast<const City*>(c2);
 }
 ```
-
 注意 const_cast 只能修改指向某个值的**指针**。如果指针所指向的值是const，便**可能**无法修改。
+
+比如，我们在具体类型上加一个const，那么将是未定义行为，尽管可能你试过发现可以改变值。
+```cpp
+const City c0 = City(1);
+const City* c1 = &c0;
+```
+再比如，
 ```cpp
 const int t = 10;
 const int* tpc = &t;
