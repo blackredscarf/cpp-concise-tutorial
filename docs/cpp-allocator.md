@@ -288,6 +288,7 @@ typedef alloc_traits<_Node_alloc_type> _Node_alloc_traits;
 标准库里面的 std::allocator 是无状态的，即不同的实例之间并没有本质区别，有以下特点：
 1. 实例的比较是相同的
 2. 任一实例分配的内存可以由任一实例回收
+
 ```cpp
 allocator<A> alloc;         // 实例1
 A* ap = alloc.allocate(1);
