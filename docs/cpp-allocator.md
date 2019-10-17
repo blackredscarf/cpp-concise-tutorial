@@ -45,7 +45,7 @@ int main(){
 }
 ```
 - operator new(size_t) 表示为指针ap指向的地址上分配一块 sizeof(A) 的内存空间。
-- new(ap) A(1) 表示在 ap 地址上初始化一个A类对象。[*[wiki]*](https://zh.wikipedia.org/wiki/New_(C%2B%2B))
+- new(ap) A(1) 表示在 ap 地址上初始化一个A类对象。[[wiki]](https://zh.wikipedia.org/wiki/New_(C%2B%2B))
 - operator delete(T*) 用于回收指针所指向的内存。
 
 ## allocator
@@ -202,7 +202,7 @@ alloc_t::destroy(alloc, ap);
 alloc_t::deallocate(alloc, ap, 1);
 cout << ap->a_ << endl;
 ```
-那为什么不再尝试通过继承 std::allocator 来实现自定义的 allocator 呢？是可以的。但很明显的一个问题是 std::allocator 里的函数实在太冗余了，所以 C++17/20 大刀阔斧地砍了很多函数。[*[ref]*](https://zh.cppreference.com/w/cpp/memory/allocator)
+那为什么不再尝试通过继承 std::allocator 来实现自定义的 allocator 呢？是可以的。但很明显的一个问题是 std::allocator 里的函数实在太冗余了，所以 C++17/20 大刀阔斧地砍了很多函数。[[ref]](https://zh.cppreference.com/w/cpp/memory/allocator)
 
 如果你要自定义一个 allocator 并用于 allocator_traits 中 ，那么只要实现 allocate， deallocate 和 max_size 即可。
 
@@ -298,6 +298,7 @@ cout << (alloc2 == alloc) << endl; // 1
 alloc2.deallocate(ap, 1);
 cout << ap->a_ << endl; // ???
 ```
+
 `==`是怎么判断的？如果你打开源码，你会发现重载的 operator== 总是返回 true。
 
 那么有状态的意思自然就是无状态相反了。C++是支持你自己定义一个有状态的 allocator 的，一个有状态的的 allocator 可以有以下实现方式：
