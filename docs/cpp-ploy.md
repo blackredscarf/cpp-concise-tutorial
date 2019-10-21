@@ -14,6 +14,10 @@ public:
     }
     // 纯虚函数（不实现）
     virtual void drive() = 0;
+    // 虚基类的析构函数必须实现为虚函数
+    virtual ~Vehicle(){ 
+        cout << "vehicle deconstruct" << endl;
+    }
 };
 
 class Car: public Vehicle {
@@ -25,6 +29,9 @@ public:
     void drive() override {
         cout << "dirve car" << endl;
     }
+    ~Car() override {
+        cout << "car deconstruct" << endl;
+    }
 };
 
 class Bus: public Vehicle {
@@ -34,6 +41,9 @@ public:
     }
     void drive() override {
         cout << "dirve bus" << endl;
+    }
+    ~Bus() override {
+        cout << "bus deconstruct" << endl;
     }
 };
 
@@ -49,21 +59,17 @@ int main(){
     // Vehicle* busv = new Bus();
     // Vehicle* carv = new Car();
 
-    busv.start();
-    carv.start();
+    busv.start(); // bus start
+    carv.start(); // car start
 
-    busv.drive();
-    carv.drive();
+    busv.drive(); // dirve bus
+    carv.drive(); // dirve car
+    
+    // car deconstruct
+    // vehicle deconstruct
+    // bus deconstruct
+    // vehicle deconstruct
 }
-```
-输出：
-```
-vehicle start
-bus start
-vehicle start
-car start
-drive bus
-drive car
 ```
 因为C++支持多继承，所以没有像java那样的super关键字，若要调用基类方法，可以使用`Vehicle::start()`。
 
@@ -376,7 +382,7 @@ int main() {
 最终结果，两次输出的虚函数表地址相同。说明尽管类型变成了基类，但虚函数表仍然是派生类的。
 
 ### 构造函数，析构函数和虚函数
-首先，思考构造函数和析构函数能不能是虚函数。构造函数不能是虚函数，因为构造函数调用时，还没有虚函数表。而当类中含有虚函数，则析构函数总是虚函数，因为当用基类对象接收派生类后，基类对象回收时需要调用派生类实现的析构函数。
+首先，思考构造函数和析构函数能不能是虚函数。构造函数不能是虚函数，因为构造函数调用时，还没有虚函数表。而当类中含有虚函数，则析构函数总应该声明为虚函数，因为当用基类对象接收派生类后，基类对象回收时需要调用派生类实现的析构函数。
 
 那构造函数和析构函数能不能调用虚函数呢？答案是都不能，其实理由和上面大致相似，构造函数调用时，还没有虚函数表；而对于析构函数，派生类析构后，基类调用的虚函数到底是自己的还是派生类的呢？若是调用基类实现则与运行时的版本不同，若调用派生类的，可能会访问到已回收的属性，所以最好不要这么干。
 
