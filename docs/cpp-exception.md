@@ -187,3 +187,86 @@ void func(int x){
     delete [] arr;
 }
 ```
+
+## noexcept
+C++11 默认情况下会认为你定义的每个函数都可能抛出异常，当你在函数后面加入 noexcept 后，表示告诉编译器该函数不抛出异常，则编译器会做一些优化来提升性能。（如果发生了异常则直接终止程序）
+```cpp
+RetType function(params) noexcept; //优化最好
+
+RetType function(params) throw();  //没有优化
+
+RetType function(params);          //没有优化
+```
+
+## 异常安全
+如果一段代码是异常安全的，那么这段代码运行时的失败不会产生有害影响，如内存泄露、存储数据混淆、或无效的输出。
+
+异常中立性：指当你的代码（包括你调用的代码）引发异常时，这个异常能保持原样传递到外层调用代码。
+
+异常安全性：1.抛出异常后，资源不泄露。2.抛出异常后，不会使原有数据恶化（例如正常指针变野指针）
+
+通常有三个异常安全级别：
+1. 不抛异常保证（no throw guarantee）：函数不抛出异常。确保办法是只使用内置类型，使用noexcept关键字。
+2. 强烈保证（the strong guarantee） ：如果抛出了异常，程序的状态没有发生任何改变。就像没调用这个函数一样。确保办法是 copy and swap 或智能指针。
+3. 基本保证（the basic guarantee）：抛出异常后，对象仍然处于合法（valid）的状态。但不确定处于哪个状态。
+
+### 抛出异常
+```cpp
+class Menu{
+    Mutex m;
+    Image *bg;
+    int changeCount;
+public:
+    void changeBg(istream& sr);
+};
+void Menu::changeBg(istream& src){
+    lock(&mutex);
+    delete bg;
+    bg = new Image(src);
+    ++changeCount;
+    unlock(&mutex);
+}
+```
+上面的代码，万一申请内存失败了，就会抛出"bad alloc"异常。这时mutex资源被泄露了，因为没有被unlock；其次是bg变成了空，原来的数据丢失。
+
+### 使用智能指针的强烈保证
+智能指针的reset是用来重置其中的资源的，在其中调用了旧资源的delete。这时如果new Image发生了异常，便不会进入reset函数。
+```cpp
+class Menu{
+    shared_ptr<Image> bg;
+    ...
+};
+void Menu::changeBg(istream& src){
+    Lock m1(&m);
+    bg.reset(new Image(src));
+    ++changeCont;
+}
+```
+事实上，上述代码并不能提供完美的强烈保证，比如Image构造函数中移动了`istream& src`的读指针然后再抛出异常，那么系统还是处于一个被改变的状态。不过这一点可以忽略，我们暂且认为它提供了完美的强烈保证。
+
+### Copy & Swap 的强烈保证
+首先需要知道 swap 函数具有noexcept声明，确保不抛出异常。
+
+这时我们可以先把要被改变的那个对象拷贝一份出来，然后去改变这个拷贝对象，如果发生异常，最多只影响拷贝对象，而原本的对象不会改变；如果过改变成功，则把拷贝对象与原对象交换（swap不抛出异常），然后再释放拷贝对象即可。这种方式也能提供强烈保证。
+```cpp
+class Menu{
+    ...
+private:
+    Mutex m;
+    std::shared_ptr<MenuImpl> pImpl;
+};
+Menu::changeBg(std::istream& src){
+    using std::swap;
+    Lock m1(&mutex);
+
+    std::shared_ptr<MenuImpl> copy(new MenuImpl(*pImpl));
+    copy->bg.reset(new Image(src));
+    ++copy->changeCount;
+
+    swap(pImpl, copy);
+}
+```
+
+
+
+
