@@ -145,7 +145,10 @@ ostream& operator<<(ostream& os, DynamicArray<U>& da) {
 }
 ```
 
-### 模板基类的保护成员
+### 6. 模板基类的保护成员
+
+<i class="template-protected"></i>
+
 我们知道类的保护成员能够被其派生类直接访问，而当该类是一个模板类时，编译器将不允许派生类直接访问。原因模板允许对同一个类进行具体化(specialisations)，具体化后可能导致若干个同名类但它们的内部实现却不同，不同的具体化可能定义了不同的成员。
 ```cpp
 template <typename T>

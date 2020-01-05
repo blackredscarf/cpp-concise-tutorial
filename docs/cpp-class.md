@@ -250,7 +250,7 @@ protected:
 // cout << "VehicleName: " << getName() << endl;
 cout << "VehicleName: " << name << endl;
 ```
-当基类是一个模板类时，这里需要一个额外的步骤，详细请看模板那一章。
+当基类是一个模板类时，这里需要一个额外的步骤，详见[这里](cpp-class-template.md#template-protected)。
 
 ### 6.2 初始化参数列表
 关于继承，还有一些重要的细节问题。你会发现只有构造函数可以带有`:`的参数列表初始化。
