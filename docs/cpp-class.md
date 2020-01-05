@@ -160,27 +160,14 @@ s1 = Stock("world cabbage", 250);
 
 当然，如果是使用new来新建对象不会出现上面的问题，因为动态变量不会被自动销毁。
 
-
-## 4. const 对象
-*see [constant](cpp-constant.md)*
-
-如果对一个对象声明为const意味着你不能改变他，而且该对象只能调用声明了const的方法。
-
-声明方式是在函数名后面加上const。
-```cpp
-const string &getName() const {
-    return name;
-}
-```
-
-## 5. 枚举类
+## 4. 枚举类
 ```cpp
 enum class Color { red, blue, green };
 enum class Trafflc_light { green, yellow, red };
 Color color = Color::red;
 ```
 
-## 6. 继承
+## 5. 继承
 在C++的继承关系中，父类被称为基类，子类被称为派生类。派生类可以继承基类除构造函数和析构函数的所有成员。对于公有继承，在派生类后面加上`: public <Base>`来继承`<Base>`类。
 ```cpp
 #include <iostream>
@@ -239,7 +226,7 @@ VehicleName: car1
 
 (From [here](https://www.geeksforgeeks.org/inheritance-in-c/))
 
-### 6.1 protected 成员
+### 5.1 protected 成员
 值得一提的是`protected`保护成员，它的作用只有在继承关系中体现出来。比如上面的例子中，我们把name变为protected:
 ```cpp
 protected:
@@ -252,7 +239,7 @@ cout << "VehicleName: " << name << endl;
 ```
 当基类是一个模板类时，这里需要一个额外的步骤，详见[这里](cpp-class-template.md#template-protected)。
 
-### 6.2 初始化参数列表
+### 5.2 初始化参数列表
 关于继承，还有一些重要的细节问题。你会发现只有构造函数可以带有`:`的参数列表初始化。
 
 如果派生类在新建对象时没有在参数列表调用基类的构造函数，那么将自动调用基类的无参构造函数或默认构造函数。
@@ -315,7 +302,7 @@ int a_ = a;
 ```
 如果只是基本类型，可能没什么区别，但如果是一个`a`内嵌对象成员，按照`#1`的逻辑，**定义的时候将隐式调用无参构造函数进行初始化**，然后在构造函数中再调用赋值运算符进行赋值。所以应该尽可能使用`#2`的写法。
 
-## 7. 多继承
+## 6. 多继承
 C++ 支持多继承:
 ```cpp
 class Car: public Vehicle, public FourWheeler { 
@@ -323,7 +310,7 @@ class Car: public Vehicle, public FourWheeler {
 }; 
 ```
 
-### 7.1 构造和析构的顺序
+### 6.1 构造和析构的顺序
 
 对于构造函数：
 - 如果发现该类继承了某个基类，一定是优先初始化其基类。
@@ -332,7 +319,7 @@ class Car: public Vehicle, public FourWheeler {
 而析构函数的执行顺序与构造函数执行顺序相反，即后初始化的一定会先被析构。
 
 
-### 8. 虚继承
+## 7. 虚继承
 既然存在多继承，那么就可能存在一个类被多个类继承。当继承路径从一个起点类出发，并产生相交于某一个类时，交点类会被初始化两次，即产生两个实例。
 ```cpp
 class A {
@@ -417,13 +404,13 @@ int main(){
 
 ![](img/virtual-inherit.jpg)
 
-## 9. class和struct的区别
+## 8. class和struct的区别
 - 使用 class 时，类中的成员默认都是 private 属性的；而使用 struct 时，结构体中的成员默认都是 public 属性的。
 - class 继承默认是 private 继承，而 struct 继承默认是 public 继承。
 - class 可以使用模板，而 struct 不能。
 
 
-## 10. 类内与内外定义的函数
+## 9. 类内与内外定义的函数
 你可以在内外定义成员函数。
 ```cpp
 class Animal {
@@ -447,7 +434,7 @@ void Animal::say() {
 3. 便于查找使用。在一个项目中，会涉及到许多函数，定义与声明分开可以更快的找到所需要的函数，同时定义可能需要成千上万行代码，而声明只需要几十行，这意味着等待代码载入的时间大大缩短了。
 
 
-## 11. static 成员
+## 10. static 成员
 定义静态成员属性的好处是可以在同类的多个对象之间实现数据共享。而静态成员方法的好处是可以直接通过类名调用，不需要实例化。当然，静态成员属性也可以通过类名访问。
 
 静态成员属性**必须**定义在“类声明之后，定义对象之前”，即必须在类外定义，类里面写的static只是一个**声明**而已。
@@ -475,41 +462,39 @@ int main(){
     cout << G::getG() << endl; // 100
 ```
 
-## 12 const 对象
+## 11 const 对象
 
-### 12.1 const 引用
-我们一般很喜欢把函数参数写作引用，来减少拷贝。当结合泛型时，就可能会发生以下问题：
+### 11.1 const 引用
+我们一般很喜欢把函数参数写作引用，来减少拷贝。但你不能传入一个临时值。
 ```cpp
-template <typename T>
+class A {
+};
+
 class C {
 public:
-    void output(T& v) {
-        cout << v << endl;
+    void output(A& v) {
     }
 };
 
 int main() {
-    C<int> c;
-    c.output(1); // error
+    C c;
+    c.output(A()); // error
 }
 ```
-我们发现，我们无法把一个常数放进去，因为我们是无法引用一个常数。
 
 解决办法是有的：
 1. 重载函数，函数参数声明为`const`，一个常引用类型可以引用一个常数。
 ```cpp
-void output(const T& v) {
-    output(v);
+void output(const A& v) {
 }
 ```
 2. 重载函数，使用[右值引用](cpp-move.md#right)。
 ```cpp
-void output(T&& v) {
-    output(v);
+void output(A&& v) {
 }
 ```
 
-### 12.2 const 函数
+### 11.2 const 函数
 我们可以标注一个函数为 const 。
 ```cpp
 void say() const;
