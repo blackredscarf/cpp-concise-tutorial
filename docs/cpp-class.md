@@ -236,6 +236,7 @@ VehicleName: car1
 总结：基类的私有属性不能被派生类直接访问，除此之外，派生类以什么权限继承基类，那么基类中高于该权限的属性就会被降级到该权限。
 
 ![](https://i.loli.net/2019/03/17/5c8deb169789f.png)
+
 (From [here](https://www.geeksforgeeks.org/inheritance-in-c/))
 
 ### 6.1 protected 成员
@@ -249,6 +250,7 @@ protected:
 // cout << "VehicleName: " << getName() << endl;
 cout << "VehicleName: " << name << endl;
 ```
+当基类是一个模板类时，这里需要一个额外的步骤，详细请看模板那一章。
 
 ### 6.2 初始化参数列表
 关于继承，还有一些重要的细节问题。你会发现只有构造函数可以带有`:`的参数列表初始化。
@@ -474,6 +476,40 @@ int main(){
 ```
 
 ## 12 const 对象
+
+### 12.1 const 引用
+我们一般很喜欢把函数参数写作引用，来减少拷贝。当结合泛型时，就可能会发生以下问题：
+```cpp
+template <typename T>
+class C {
+public:
+    void output(T& v) {
+        cout << v << endl;
+    }
+};
+
+int main() {
+    C<int> c;
+    c.output(1); // error
+}
+```
+我们发现，我们无法把一个常数放进去，因为我们是无法引用一个常数。
+
+解决办法是有的：
+1. 重载函数，函数参数声明为`const`，一个常引用类型可以引用一个常数。
+```cpp
+void output(const T& v) {
+    output(v);
+}
+```
+2. 重载函数，使用[右值引用](cpp-move.md#right)。
+```cpp
+void output(T&& v) {
+    output(v);
+}
+```
+
+### 12.2 const 函数
 我们可以标注一个函数为 const 。
 ```cpp
 void say() const;

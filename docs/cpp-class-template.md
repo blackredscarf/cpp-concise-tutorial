@@ -145,37 +145,45 @@ ostream& operator<<(ostream& os, DynamicArray<U>& da) {
 }
 ```
 
-## 6. 常数的引用
-我们一般很喜欢把函数参数写作引用，来减少拷贝。当结合泛型时，就可能会发生以下问题：
+### 模板基类的保护成员
+我们知道类的保护成员能够被其派生类直接访问，而当该类是一个模板类时，编译器将不允许派生类直接访问。原因模板允许对同一个类进行具体化(specialisations)，具体化后可能导致若干个同名类但它们的内部实现却不同，不同的具体化可能定义了不同的成员。
 ```cpp
 template <typename T>
-class C {
-public:
-    void output(T& v) {
-        cout << v << endl;
-    }
+class A {
+protected:
+    int a_;
 };
 
-int main() {
-    C<int> c;
-    c.output(1); // error
-}
+template <typename T>
+class B : public A<T> {
+protected:
+    void test() {
+        a_ = 1; // error
+    }
+};
 ```
-我们发现，我们无法把一个常数放进去，因为我们是无法引用一个常数。
+解决办法有两个，一个是用 using 声明一下。
+```cpp
+template <typename T>
+class B : public A<T> {
+    using A<T>::a_;
+protected:
+    void test() {
+        a_ = 1;
+    }
+};
+```
+另一个办法是使用this指针访问。
+```cpp
+template <typename T>
+class B : public A<T> {
+protected:
+    void test() {
+        this->a_ = 1;
+    }
+};
+```
 
-解决办法是有的：
-1. 重载函数，函数参数声明为`const`，一个常引用类型可以引用一个常数。
-```cpp
-void output(const T& v) {
-    output(v);
-}
-```
-2. 重载函数，使用[右值引用](cpp-move.md#right)。
-```cpp
-void output(T&& v) {
-    output(v);
-}
-```
 
 ## 总结
 C++的模板是C++最复杂的特性之一，虽然让不少人吐槽，但类似于STL等库中确实大量用到了这些特性，说明这些特性并非无缘无故加进去的。标准委员会那帮家伙从来就没奢望每个人都去精通它，它是给需要用到它的人用的。
