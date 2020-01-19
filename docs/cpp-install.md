@@ -13,10 +13,7 @@ VS内置了C++编译器可供使用。但从我个人角度而言，为了尽量
 g++ --version
 ```
 
-下载[CMake](https://cmake.org/download/)并安装。
-把安装目录下的bin目录加到环境变量中。
-
-打开CMD，执行以下命令可以看到版本。
+CMake是C++的一种项目管理工具，下载[CMake](https://cmake.org/download/)并安装。把安装目录下的bin目录加到环境变量中。打开CMD，执行以下命令可以看到版本。
 ```
 cmake --version
 ```
@@ -66,7 +63,11 @@ cmake --version
 
 
 ## 编辑器与配置
-推荐使用 CLion 或 Visiual Studio 。
+推荐使用 [CodeBlocks](http://www.codeblocks.org), [CLion](https://www.jetbrains.com/clion/) 或 [Visual Studio](https://visualstudio.microsoft.com/zh-hans/downloads/) 。
+
+如果你只是想简单敲一敲和学习一下，使用 CodeBlocks 即可，Windows系统的话使用 Visual Studio 也是可行的。
+
+如果你要做项目的话，建议使用 CLion 或 Visual Studio。 Visual Studio 只能在 Windows 系统下使用，内置了一些构建项目的方法。如果使用CLion，需要用CMake构建项目。 CMake是目前C++最流行的项目管理工具，但学习成本较高，不适合初学者，本教程暂不涉及CMake的知识，如有需要另行学习。
 
 ### CLion 
 CLion 内置了一个CMake，为了统一，你可以设置自己的CMake。设置方式：File -> settings -> Build, ... -> Toolchains 指定自己的CMake。
