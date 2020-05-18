@@ -20,6 +20,6 @@
 * [正则表达式](cpp-regex.md)
 * [智能指针](cpp-intel-point.md)
 * [移动语义](cpp-move.md)
-* [现代 c++](cpp-modern.md)
 * [traits](cpp-traits.md)
 * [allocator](cpp-allocator.md)
+* [其他特性](cpp-modern.md)
