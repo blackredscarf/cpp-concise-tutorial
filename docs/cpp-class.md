@@ -53,7 +53,7 @@ Stock sc2(s1);
 
 - 如果创建的是自动存储类对象（没有使用new），则其析构函数将在程序执行完代码块时自动被调用。
 - 如果对象是通过new创建的，则它将驻留在栈内存或自由存储区中，当使用delete来释放内存时，其析构函数将自动被调用。
-- 如果程序员没有提供析构函数，编译器将隐式地声明一个默认析构函数，并在发现导致对象被删除的代码后，提供默认析构函数的定义。
+- 如果程序员没有提供析构函数，编译器将隐式地声明一个默认析构函数，并在发现导致对象被删除的代码后，提供默认析构函数的调用。
 
 用前缀`~`定义：
 ```cpp
@@ -548,4 +548,31 @@ class B{
 
 有个比较好的方案是，自己写的代码自己清楚，该标注const都标上。别人的代码不清楚，则看看使用对象时有没有调用函数，若是不需要调用函数，则标上const，若是需要调用函数，则不标注。当然使用IDE的话，可以直接跑到头文件看源码里的声明。
 
+## 12 隐式转换
+C++ Class在构造时具有一种隐式转换，如果Class具有单个参数的构造函数，那么构造时你可以通过把该类型的变量赋值给对象的形式进行构造。
+```cpp
+class Person {
+public:
+    Person(string name): name(name) {}
+    string name;
+};
 
+void say(Person p) {
+    cout << p.name << endl;
+}
+
+int main() {
+    Person p = string("John"); // implicit conversion
+    say(string("John"));    // John
+}
+```
+这种转换看起来很让人匪夷所思，不利于理解，而且还可能与operator=()造成冲突，如果你定义了同样参数的operator=()，那么总是会使用构造函数。
+
+解决办法是加上在构造函数前加上explicit关键字，告诉编译器这个构造函数不允许隐式转换。
+```cpp
+class Person {
+public:
+    explicit Person(string name): name(name) {}
+    string name;
+};
+```

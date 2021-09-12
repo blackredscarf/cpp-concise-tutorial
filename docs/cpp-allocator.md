@@ -258,7 +258,7 @@ alloc.destroy(ip);
 alloc.deallocate(ip, 1);
 ```
 
-为什么要有这个设计呢？这个设计在STL里面有得很多，事实上，每个容器的第二个模板参数就是传进一个 allocator，默认是STL自己的 allocator 或者是 std::allocator，那么默认情况下，容器的泛型和 allocator 的泛型是一致的。
+为什么要有这个设计呢？这个设计在STL里面用得很多，事实上，每个容器的第二个模板参数就是传进一个 allocator，默认是STL自己的 allocator 或者是 std::allocator，那么默认情况下，容器的泛型和 allocator 的泛型是一致的。
 ```cpp
 template<typename _Tp, typename _Alloc = std::allocator<_Tp> >
 class vector ...

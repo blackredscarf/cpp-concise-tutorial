@@ -210,7 +210,7 @@ cout << -332 << endl;   // -332
 ```cpp
 ios::fmtflags fo(cout.flags());
 // ...
-cout.flags(f);
+cout.flags(fo);
 ```
 
 ### 简便格式化
