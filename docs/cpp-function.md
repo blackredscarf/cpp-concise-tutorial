@@ -178,3 +178,58 @@ auto add(T1 a, T2 b) -> decltype(a + b) {
 }
 ```
 返回类型先暂时写个auto，然后返回的时候再计算它的类型。
+
+## 栈帧
+函数的调用以及自动变量会存到栈中，每一个函数的调用就会产生一个新的栈帧。在x86系统中，栈是从高地址向低地址生长的，所有这个栈的开口是朝下的。一个新函数的调用，栈帧会在下面入栈；同理，分配内存时也会从高地址向低地址扩展，但存储数据又是从低地址向高地址存的。在汇编里面，一般用ebp表示栈底，用eps表示栈顶。
+
+下面我用一个段程序以及它的汇编来解释一下函数调用的过程，
+
+```cpp
+int func(int m, int n) {
+    int a = m;
+    int b = n;
+    // ...
+    return a;
+}
+
+int main() {
+    int res = func(10, 20);
+}
+```
+```assembly
+__main:
+    push ebp            ; 栈底ebp入栈
+    push 20             ; 传入参数入栈
+    push 10             ; 传入参数入栈
+    call func           ; 调用函数（跳转至新栈帧__func）
+    sub esp, 4          ; func退出后来到这里，分配4个字节空间
+    mov [ebp-4], eax    ; 存放函数返回值
+
+__func:
+    push ebp            ; 栈底ebp入栈
+    mov ebp, esp        ; 使ebp指向栈顶
+    sub esp, 8          ; 栈顶下移，即分配栈空间
+    mov [ebp-4], 10     ; 前4个字节存一个整数10
+    mov [ebp-8], 20     ; 前8个字节存一个整数20，因为整数只占4个字节，所以不会覆盖前面4个字节
+    ...                 ; 其他操作，这里省略
+    mov esp, ebp        ; 函数返回时，把栈顶指针移到栈底
+    pop ebp             ; 把栈底移除
+    ret                 ; 返回
+```
+
+![stackframe.jpg](https://i.loli.net/2021/09/21/rzVpcaq7wDJ35KB.jpg)
+
+根据汇编注释和示意图应该可以理解整体流程了。其中示意图里的“返回地址”这个东西是每次调用函数时都会入栈的一块空间。你可以把call指令转换为，
+```assembly
+push eip + 2 ; 返回地址=当前地址+2
+jmp __func
+```
+即每次调用函数至少都会占用两个字节的空间。
+
+函数的返回值会放入被`eax`指向的内存空间，通过`mov`指令，把eax指向的数据移动到指定的内存空间里。
+
+本节参考：
+
+- [x86 Disassembly/Functions and Stack Frames](https://en.wikibooks.org/wiki/X86_Disassembly/Functions_and_Stack_Frames)
+- [x86 Assembly Guide](http://www.cs.virginia.edu/~evans/cs216/guides/x86.html)
+

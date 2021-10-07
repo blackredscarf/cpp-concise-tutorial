@@ -167,7 +167,7 @@ int main() {
     while (true) {}
 }
 ```
-throw一个错误后，就马上离开了try代码块，自动变量th调用析构函数，但可能线程还没结束，这时进程会被终止。
+throw一个错误后，就马上离开了try代码块，自动变量th调用析构函数，但可能线程还没结束，这会导致进程会被终止。
 
 解决办法是通过“资源获取即初始化”(RAII，Resource Acquisition Is Initialization)进行规避，
 ```cpp
@@ -227,7 +227,7 @@ int main() {
 // 99999
 ```
 
-### 所有权转移
+### 参数所有权转移
 通过move()搭配unique_ptr可以完成所有权转移，同一刻总是只有一个线程拥有数据的所有权，这是一个解决数据竞争的良好解决办法。
 ```cpp
 void handle(unique_ptr<string> s) {

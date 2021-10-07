@@ -24,7 +24,6 @@ int main(){
 }
 ```
 
-
 ## 异常对象
 上面的例子中抛出了一个字符串，其实还可以抛出一个自定义对象。
 ```cpp
@@ -143,13 +142,12 @@ try {
 };
 ```
 
-## 栈解退
+## 栈解退/栈展开
+当抛出异常时，会终止当前代码块的执行，调用代码块内自动变量的析构函数，并查找一个与之匹配的catch子句，如果异常代码位于try子句里面，则会检查其catch子句是否匹配，如果不匹配，则继续检查外层try子句。如果当前函数作用域已经没有try子句了，则会把异常向上层调用函数抛出。如果一直到main函数都没有找到匹配的catch子句，则会调用terminal函数，终止进程。这个过程叫**栈解退**或**栈展开**（unwinding the stack），有时也叫**栈回退**。
 
-假设我们嵌套调用函数，main -> b1() -> b2() -> b3()，当b3()里面抛出异常，那么程序会直接返回main中的catch块，这个过程叫**栈解退**（unwinding the stack）。
+对于栈解退的编译器层面的实现原理可以参考这篇[文章](http://baiy.cn/doc/cpp/inside_exception.htm#栈回退（Stack_Unwind）机制)。
 
-而程序会把从try到throw之间的所有自动对象的析构函数将被调用，注意这里的表达是调用析构函数，而不是回收内存，是否回收了所有内存要看析构函数了。
-
-那么问题就是，如果是非自动变量，比如数组这种直接申请内存，又没有析构函数的怎么办？
+有个问题，如果是非自动变量，比如数组这种直接申请内存，又没有析构函数的怎么办？
 
 ```cpp
 void func(int x){
@@ -179,13 +177,41 @@ void func(int x){
     string s("hello world");
     try{
         if (x)
-            throw runtime_error( "boom");
+            throw runtime_error("boom");
     }catch (exception &e){
         delete [] arr;
         throw ;
     }
     delete [] arr;
 }
+```
+
+## RAII
+为了解决上面提出的问题，还有一种更优雅的办法即**资源获取即初始化**(RAII, Resource Acquisition Is Initialization)。意思是，当你获取到一个资源，你应该马上把它初始化为一个管理对象，让这个对象帮你去管理资源的生命周期。这一点在Effective C++的第13条里面有提到过。
+
+比如，拿到一个指针后，马上放进智能指针里面，就算后面发生了什么异常，也可以通过智能指针的析构函数对指针进行删除。
+```cpp
+void func(int x){
+    char* arr = new char[1024];
+    auto arrPtr = make_shared<char*>(arr);
+    throw std::runtime_error("boom");
+}
+```
+
+还有就是在加锁的场景，有时候我们必须在函数结束时解锁，但可能中途抛出异常导致无法执行解锁代码，这时也可以用一个管理对象去管理mutex，在构造时自动加锁，在析构时自动解锁。
+```cpp
+std::mutex m;
+
+void bad() {
+    m.lock();
+    if(!everything_ok()) return;
+    m.unlock();
+}
+ 
+void good() {
+    std::lock_guard<std::mutex> lk(m);
+    if(!everything_ok()) return;
+}       
 ```
 
 ## noexcept

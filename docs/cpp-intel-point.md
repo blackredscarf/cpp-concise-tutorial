@@ -56,6 +56,11 @@ int main(){
     // ...
 }
 ```
+auto_ptr采用的是所有权转移，你可以通过拷贝构造函数进行所有权转移，
+```cpp
+auto_ptr<int> ps(new int(3));
+auto_ptr<int> ps2 = ps;
+```
 
 ## 3. 智能指针的注意事项
 先看一个例子：
@@ -91,6 +96,8 @@ cout << *ps << endl;
 ```
 shared_ptr使用引用计数，ps指向一个动态内存中的字符串对象，ps赋值给voca后，voca原本指向的对象的引用计数-1，然后将ps中的对象及其引用计数覆盖到voca上，voca与ps将指向同一个对象，该对象的引用计数为2，当voca被回收时，引用计数变成1，当ps被回收时，引用计数变为0，则释放对象的空间。
 
+引用计数的实现方法是在shared_ptr内部维护一个计数指针，每次shared_ptr拷贝或赋值的时候，就拷贝计数指针给新的shared_ptr对象，并且计数指针指向的计数值加一。
+
 源码大概如下：
 ```cpp
 class __shared_ptr {
@@ -99,7 +106,9 @@ private:
     __shared_count<_Lp>  _M_refcount;    // Reference counter.
 }
 ```
-指针对象和计数对象都用的是指针，当赋值的时候就拷贝两个指针。当一个对象回收时，计数对象指针指向的值减1️，当最后一个对象回收时，发现计数减1后变成了0，就可以`delete _M_ptr`，回收指针对象的内存空间了。
+__shared_count是一个引用计数对象，内部持有一个 __Sp_counterd_base 类型的指针，每次shared_ptr赋值或拷贝时，__shared_count会把 __Sp_counterd_base 指针对应的计数加一，然后复制给新shared_ptr对象。
+
+指针对象和计数对象都用的是指针，当赋值的时候就拷贝两个指针。当一个对象回收时，计数对象指针指向的值减1️，当最后一个对象回收时，发现计数减1后变成了0，就可以回收指针对象的内存空间了。
 
 当然，引用计数并非完美，当存在循环引用时就会导致无法回收内存。试想正常的赋值是
 ```cpp
@@ -113,7 +122,6 @@ s1, s2, s3 共同维护的计数是3。s3回收，计数变为2；s2回收，计
 s1->p = s2;
 s2->p = s1;
 ```
-s1 和 s2 维护的是不同的计数，都是2。s2回收，计数变为1；s1回收，计数变为1；都没有到达0，所以无法回收。
 
 下面是具体例子：
 ```cpp
@@ -140,8 +148,8 @@ void test1() {
     cout << t1.use_count() << endl; // 2
     cout << t2.use_count() << endl; // 2
 
-    // 回收t2时，引用计数减1，但t1->ps指向了t2，所以引用计数还有1
-    // 回收t1时，引用计数减1，但t2->ps指向了t1，所以引用计数还有1
+    // 回收t2时，t2引用计数减1，但t1->ps指向了t2，所以t2引用计数还有1，t2内部对象析构函数没有调用
+    // 回收t1时，t1引用计数减1，但t2->ps指向了t1，所以t1引用计数还有1，t1内部对象析构函数没有调用
 }
 ```
 
@@ -158,6 +166,12 @@ unique_ptr<int> ps2(ps.release()); // ps释放所有权并返回指针
 unique_ptr<int> ps3(new int(3));
 ps3.reset(ps2.release());  // ps3释放原来的指针，并获取新的指针
 ```
+或者更简洁的方式是通过[移动语义](cpp-move.md)转移到新的unique指针上，
+```cpp
+unique_ptr<int> ps(new int(3));
+unique_ptr<int> ps2 = std::move(ps);
+```
+auto_ptr也是转移所有权，但它默认允许隐式转移，unique_ptr并不允许这么做。
 
 相比于auto_ptr，unique_ptr还有另一个优点。它有一个可用于数组的变体。使用new分配内存时，才能使用auto_ptr和shared_ptr，使用new [ ]分配内存时，不能使用它们。
 ```cpp
