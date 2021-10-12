@@ -226,6 +226,11 @@ VehicleName: car1
 
 (From [here](https://www.geeksforgeeks.org/inheritance-in-c/))
 
+在class name后面标注final关键字，可以使class不可被继承，
+```cpp
+class Data final {};
+```
+
 ### 5.1 protected 成员
 值得一提的是`protected`保护成员，它的作用只有在继承关系中体现出来。比如上面的例子中，我们把name变为protected:
 ```cpp

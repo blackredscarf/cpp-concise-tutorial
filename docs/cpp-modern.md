@@ -105,3 +105,46 @@ int main() {
     return 0;
 }
 ```
+
+## 结构绑定
+如果有从函数返回多个值的需求，比如像go那样，返回一个实例和是否存在的布尔值，可以考虑返回pair。搭配C++17的结构绑定会非常方便。
+```cpp
+class Data {};
+
+pair<Data, bool> getData() {
+    return {Data{}, true};  // C++17 结构绑定
+}
+
+int main() {
+    const auto& [data, ok] = getData();   // C++17 结构绑定
+    if(ok) {
+        // ...
+    }
+    return 0;
+}
+```
+
+## optional
+C++17的新功能，用optional包裹对象返回，可以用来处理取不到值得情况。
+```cpp
+optional<Data> getData(bool b) {
+    return b ? optional(Data{1}) : std::nullopt;    // std::nullopt表示空值
+}
+
+int main() {
+    optional<Data> opt = getData(true);
+    if(opt.has_value()) {
+        cout << "Get " << opt.value().x << endl;
+    } else {
+        cout << "None" << endl;
+    }
+
+    // 简洁写法：（通过optional重载布尔运算符实现）
+    if(auto opt = getData(true)) {
+        cout << "Get " << opt.value().x << endl;
+    } else {
+        cout << "None" << endl;
+    }
+    return 0;
+}
+```

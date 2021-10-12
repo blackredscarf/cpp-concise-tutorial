@@ -294,6 +294,21 @@ cout << v[0] << endl;   // hello
 cout << data << endl;   // nothing
 ```
 
+### 临时变量的常量性
+临时变量是不可更改的，或者说右值是不可更改的。所以你可以用一个常量引用接收一个右值，因为你决定不更改右值时，就没必要从右值复制到左值了，而是直接用常量去引用这块临时变量的空间，这样能提高性能。当然，前提是你的常量引用必须总是和临时变量在同一作用域下。
+```cpp
+Data getDataTemp() {
+    return {};
+}
+
+void test() {
+    const auto& d = getDataTemp();
+    auto&& d2 = getDataTemp();
+    auto d3 = getDataTemp();  // copy temporary variable
+    auto& d4 = getDataTemp();  // error
+}
+```
+
 ## forward
 完美转发(perfect forward)。在泛型的情况下，右值引用可以接受右值，左值以及左值引用。为了区分开和转换他们，可以使用`forward`函数。而forward内部将调用`static_cast`进行转换。
 ```cpp

@@ -110,6 +110,34 @@ __shared_count是一个引用计数对象，内部持有一个 __Sp_counterd_bas
 
 指针对象和计数对象都用的是指针，当赋值的时候就拷贝两个指针。当一个对象回收时，计数对象指针指向的值减1️，当最后一个对象回收时，发现计数减1后变成了0，就可以回收指针对象的内存空间了。
 
+### 4.1 右值拷贝不参数引用计数
+对于share_ptr，从左值构造一个新对象时，引用计数加一，但从右值构造时引用计数不变。
+```cpp
+struct Data {
+    int x;
+    Data(int x_): x(x_) {}
+};
+
+int main() {
+    shared_ptr<Data> ptr(make_shared<Data>(3));
+    cout << ptr.use_count() << endl;    // 1
+    return 0;
+}
+```
+这个看一下源码就清楚了，移动拷贝构造函数的实现和拷贝构造函数的实现是不同的。
+```cpp
+__shared_ptr(const __shared_ptr<_Yp, _Lp>& __r) noexcept
+: _M_ptr(__r._M_ptr), _M_refcount(__r._M_refcount)  // 这里调用拷贝构造函数
+{ }
+
+__shared_ptr(__shared_ptr&& __r) noexcept
+: _M_ptr(__r._M_ptr), _M_refcount(){
+    _M_refcount._M_swap(__r._M_refcount);   // 这里交换了一下值
+    __r._M_ptr = 0;
+}
+```
+
+### 4.2 循环引用
 当然，引用计数并非完美，当存在循环引用时就会导致无法回收内存。试想正常的赋值是
 ```cpp
 s2 = s1;

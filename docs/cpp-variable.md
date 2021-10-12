@@ -199,6 +199,45 @@ int main() {
 
 需要明白，static变量不同于自动变量的是，虽然两者都需要在作用域范围内才能使用，但自动变量脱离作用域后便被回收，而static则是直到程序停止运行后才被回收。
 
+### 8.1 局部静态
+局部静态(local static)具有两个特性：
+1. 只执行一次
+2. 线程安全(C++11)
+
+```cpp
+struct Data { int x; };
+
+void incrementAndPrint(){
+    static Data data{ 1 };  // 只执行一次
+    data.x += 1;
+    std::cout << data.x << '\n';
+}   // data不会销毁，但作用域仍然在函数内
+
+int main() {
+    incrementAndPrint();    // 2
+    incrementAndPrint();    // 3
+    incrementAndPrint();    // 4
+    return 0;
+}
+```
+
+静态变量会存到全局存储区，既不是栈也不是堆。据此，你可以推理出静态变量不会随离开函数作用域而被销毁，并且可以通过引用传递到作用域外部访问。
+```cpp
+static int& test() {
+    static int s = 2;
+    cout << s << endl;
+    return s;
+}
+
+int main() {
+    static int& v = test(); // 2
+    v++;
+    test(); // 3
+    return 0;
+}
+```
+
+
 ## 9. 命名空间
 一个名称空间中的名称不会与另外一个名称空间的相同名称发生冲突，同时允许程序的其他部分使用该名称空间中声明的东西。使用关键字namespace创建命名空间。
 ```cpp
