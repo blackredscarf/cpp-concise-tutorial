@@ -58,7 +58,7 @@ std::cout << R"+*(("hello") \n world)+*" << std::endl;
 正如前面所说的，改变这个值的可能不是程序本身，所以可以将变量声明为volatile，相当于告诉编译器，不要进行这种优化。
 
 ## 5. mutable
-可以用它来指出，即使结构或类变量为const，其某个成员也可以被修改。
+可以用它来指出，即使结构或类变量为const，其某个成员也可以被修改。编译器可以在实际定义之后进行再链接
 ```cpp
 struct data {
     mutable int access;
@@ -79,7 +79,18 @@ int main(){
 
 int gg = 9;
 ```
-上面的例子gg的定义在main函数的后面，理论上，是不能在main里面使用gg的，但我们可以使用通过`extern int gg`声明gg是一个全局变量。除此之外，你还能用extern声明一个全局函数。
+上面的例子gg的定义在main函数的后面，理论上，是不能在main里面使用gg的，但我们可以使用通过`extern int gg`声明gg是一个全局变量。除此之外，你还能用extern预声明一个全局函数。
+```cpp
+int main() {
+    extern int test();
+    std::cout << test() << std::endl;
+    return 0;
+}
+
+int test() {
+    return 1;
+}
+```
 
 再举个例子，我在file1.cpp 定义了一个变量`x`，而file2.cpp中想访问到这个变量，我们该怎么办？在python中直接使用import模块即可，但c++中你只能include一个`.h`文件。
 
@@ -118,6 +129,28 @@ int main(){
     get_global_x(); // 10
 }
 ```
+
+一般来说，如果不使用extern，我们不应该直接在头文件里定义声明和全局变量，
+```cpp
+// def.h
+#ifndef DEF
+#define DEF
+
+int a = 1;  // don't do this
+
+#endif
+```
+```cpp
+// def.cpp
+#include "def.h"    // 引入时定义了一次
+```
+```cpp
+// main.cpp
+#include "def.h"    // 引入时又定义了一次
+// error: multiple definition of `a'
+```
+因为一旦头文件被导入不同的cpp文件里，则会导致重复声明或重复定义的问题，同理，一个函数不能有两个完全相同的声明和定义。而使用extern既不是声明也不是定义，而是预先声明，编译器可以在实际定义之后进行再链接。
+
 ### 6.1. extern "C"
 extern还有一个作用通过声明`extern "C" { }`来把函数编译和链接成C语言格式。比如一个C++函数`void foo( int x, int y );`会被编译成`_foo_int_int`之类的名字，因为C++允许函数重载改变函数参数，而C则不能重载，所以会编译成类似于`_foo`。如果你尝试在C++里面调用C语言实现的函数，则会编译出错，因为C++编译器找不到函数的链接，如果你用`extern "C"`包裹的C的定义话则不会用问题。
 
