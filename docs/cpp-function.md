@@ -130,6 +130,34 @@ cout << n1 << " " << n2 << endl;
 ```
 上面的例子中，我们重载了swap函数，并且函数名后面指定了`<Node>`，表明了对Node类型的swap函数进行具体化。
 
+## 定义位置
+模板函数如果想被不同cpp文件使用，必须在头文件里面定义好，而不能在源文件里面定义，因为定义的链接发生在预处理阶段之后，如果不在头文件里面定义好，预处理阶段时根本不知道你的定义在哪里，自然也无法帮你生成函数了，进而无法产生链接，在链接阶段会报未定义错误。
+
+但如果在cpp文件里显式具体化，则可以规避掉这个问题，因为一旦显式具体化后，编译器就会生成对应类型的函数，然后链接阶段多个目标文件合并后，就能找到对应的函数地址了。但注意，这样是做是不太好的，建议还是老实在头文件里面定义好。
+```cpp
+// main.cpp
+#include "def.h"
+int main() {
+    Test::test2<int>(); // 预处理阶段，无法生成函数，因为.h里根本没有定义
+}
+```
+```cpp
+// def.h
+namespace Test {
+template <class T>
+void test2();
+}
+```
+```cpp
+// def.cpp
+#inclue "def.h"
+template <class T>
+void Test::test2(){ // 定义
+
+}
+template void Test::test2<int>();   // 显式具体化，将生成int对应的函数，def.cpp.obj和main.cpp.obj合并后，main.cpp就能正确调用了
+```
+
 
 ## decltype
 类型获取（decltype）是c++11的新特性，在讲解它之前先看看一段代码：
