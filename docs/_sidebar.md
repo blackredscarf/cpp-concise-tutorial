@@ -6,6 +6,7 @@
 * [指针](cpp-pointer.md)
 * [函数](cpp-function.md)
 * [编译](cpp-compile.md)
+* [内存](cpp-memory.md)
 * [面向对象](cpp-oop.md)
     * [类](cpp-class.md)
     * [多态](cpp-ploy.md)
