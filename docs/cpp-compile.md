@@ -62,7 +62,9 @@ void show_polar(polar dapos);
 
 值得注意的是，我们使用`coordin.h`，而不是`<coodin.h>`。如果文件名包含在**尖括号**中，则C++编译器将在存储标准头文件的主机系统的文件系统中查找；但如果文件名包含在**双引号**中，则编译器将首先查找当前的工作目录或源代码目录（或其他目录，这取决于编译器）。
 
-### 2.2 头文件的重复导入
+## 3. 头文件注意事项
+
+### 3.1 重复导入
 前面我们提到，在头文件写上`#ifndef`和`#endif`是为了使得一个头文件被多个头文件所导入后，不会发生重复定义问题，但这么做只能限制头文件之间的导入，而无法防止头文件同时被多个源文件导入的情况。正如上面的过程里讲到，对于宏的解析，只是在预处理阶段，而真正查找具体定义是在链接阶段。如果你的头文件只包含声明而不包含定义，自然没有问题，因为C++允许重复声明，如果头文件里面包含了定义则会导致**重复定义**问题，因为在链接过程中会发现不同目标文件里存在多个定义，链接器不知道该链接至哪个定义。
 
 重复定义不只是针对重复导入的问题，而是同一个声明在不同源文件中有不同的定义也是重复定义问题。
@@ -77,7 +79,87 @@ void show_polar(polar dapos);
 
 （4）模板函数，它和宏一样是通过代码生成实现的，实际上也是在预处理阶段就生成好的。进一步的说，模板函数必须在头文件里面定义好，因为定义的链接发生在预处理阶段之后，如果不在头文件里面定义好，预处理阶段时根本不知道你的定义在哪里，自然也无法帮你生成函数实现了，进而无法产生链接，在链接阶段会报未定义错误。
 
-## 3. 库
+### 3.2 hpp
+前面说过，模板函数必须写在头文件里面，但有时候我们就是想保持头文件的纯粹性，只声明接口，不做定义。这时我们可以尝试用一个`hpp`头文件来定义`h`里面声明的模板函数，定义完后只要在`h`文件最后导入`hpp`文件即可。
+
+```cpp
+// mymath.h
+#pragma once
+
+template <typename T>
+T MyMax(T a, T b);
+
+// 在最后导入hpp
+#include "mymath.hpp"
+```
+```cpp
+// mymath.hpp
+#pragma once
+#include "mymath.h"
+
+template <typename T>
+T MyMax(T a, T b) {
+    return a < b ? b : a;
+}
+```
+
+### 3.3 循环引用
+当两个头文件相互导入时就会产生循环引用问题，这时是无法通过编译的，但编译器不会直接告诉你是因为循环引用导致问题，或者说，编译不负责检测循环引用，只是在编译到有问题时才会报错，所以实际上循环引用导致的报错可能是多样的。如果这个循环引用跨了很多个头文件，头文件定义了很多东西，这时可能会报非常多错。
+
+举一个例子，两个头文件都想使用对方声明的类型，这种情况下总有一边无法找到声明。因为include头文件都是写在头部的，include之后就会把代码段插入到include的位置，就可能会导致include进来的接口使用了一个后面才声明的类型。这种情况下一般会报`error: 'XXX' has not been declared`。
+
+```cpp
+// player.h
+#pragma once
+#include "region.h"     // 导入region
+
+class Player {
+public:
+    bool IsInRegion(Region* region);
+};
+```
+```cpp
+// region.h
+#pragma once
+#include "player.h"     // 导入player
+
+class Region {
+public:
+    bool IsPlayerExist(Player* player);
+};
+```
+如果cpp文件先导入了player.h，那么执行到`#include "region.h"`就会把region.h代码段插入到player.h的前面，`region.h`中尝试导入`player.h`但已经被导入所以不会重复导入，而Region的接口`IsPlayerExist(Player*)`使用了Player类型，但这个类型此时还未声明。
+```cpp
+#include "player.h"
+int main() {
+}
+```
+修正方式很简单，因为C++允许重复声明，那么我们只要在region.h顶部手动声明一个Player的class即可。
+```cpp
+// region.h
+#pragma once
+
+class Player;   // 手动声明Player
+
+class Region {
+public:
+    bool IsPlayerExist(Player* player);
+};
+```
+但要注意，这里只是预声明了一下，实际上目前还不知道player声明了哪些接口，所以你不能在头文件这里直接使用player的接口。我们可以在cpp文件里面导入双方头文件，把双方的声明都插入进来，然后在后面具体实现时就能使用双方声明的接口了。
+```cpp
+// region.cpp
+#include "region.h"
+#include "player.h" // 导入player声明
+
+bool Region::IsPlayerExist(Player* player) {
+    return player->IsInRegion(this);    // 已知player的声明，可以使用接口
+}
+```
+
+
+
+## 4. 库
 我们一般把没有main函数的目标文件称为库，所谓的库你可以理解为若干目标文件的集合，其中仅包含变量、函数或类的定义。其实我们的程序可以以3种形式编译：
 
 1. 把所有源文件和main函数文件打包到一个可执行文件里
@@ -90,7 +172,7 @@ void show_polar(polar dapos);
 2. 共享库。基础模块会被很多进程使用，则基础模块可以作为共享库，这样可能节省重复代码段占用的内存，可执行文件的大小也会小一点。
 3. 静态库。静态库其实就是提供一个不需要暴露源代码的目标文件，如果你写了一个库又不想开源，则可以考虑向他人提供目标文件和头文件即可。
 
-### 3.1 统一打包
+### 4.1 统一打包
 假设我们的项目有main.cpp, test.h, test.cpp，在main.cpp里调用test.h声明的接口。
 ```cpp
 // main.cpp
@@ -128,7 +210,7 @@ g++ main.cpp test.cpp -o main1.exe
 output
 ```
 
-### 3.2 共享库
+### 4.2 共享库
 指定`-shared`生成共享目标文件，不同系统的库的命名规范不同，linux是`libXX.so`，而windows则是`XX.dll`，
 ```shell
 # linux
@@ -146,7 +228,7 @@ g++ -ltest -L. main.cpp -o main2.exe
 
 指定了`-L`会导致可执行文件查找共享库的位置写死，如果指定路径下没有对应的共享库，程序会出错，比如有些软件会要求把dll和exe放在同一目录下，就是这个原因。对于常用库文件，一般我们不指定`-L`，而是放在系统目录，编译器会自动从系统目录里查找。linux的目录为/usr/lib，也可以通过LD_LIBRARY_PATH环境变量指定共享库目录。windows的目录为C:\Windows\system32，可以在PATH环境变量自定义目录。
 
-### 3.3 静态库
+### 4.3 静态库
 g++默认情况下会直接生成可执行文件，如果我们只需要编译一个库而已，则不需要main函数，也不需要马上去链接静态库本身的依赖库的定义，我们不会直接运行一个库，依赖库的定义并不关心，实际上链接是在最后打包成可执行文件时才需要做的，现在只需要把自己的定义打包到一个目标文件里。
 
 g++命令带上`-c`参数，不进行最后的链接阶段，生成目标文件，
@@ -165,7 +247,7 @@ g++ main.cpp -ltest -L. -static -o main3.exe
 - `-L`表示库所在的路径
 - `-static`表示以静态库方式链接
 
-### 3.4 运行时动态链接
+### 4.4 运行时动态链接
 一般共享库都是加载时动态链接，即程序开始前找到动态库信息。而共享库的另一个别称是动态库，它支持程序运行时进行动态链接。这部分的API没有做到跨平台，windows和linux用的是不同的API。windows的API在windows.h上，而linux的API在dlfcn.h。
 
 如果你想用C++实现代码热更新，可以用动态链接的方式，每次更新只要把动态库替换的就可以了，但意味着每次函数的调用需要通过字符串从dll里面获取具体函数地址，然后再调用。
