@@ -12,6 +12,7 @@
     * [多态](cpp-ploy.md)
     * [运算符重载和友元](cpp-class-op-friend.md)
     * [类模板](cpp-class-template.md)
+    * [对象的内存模型](cpp-object-model.md)
 * [异常处理](cpp-exception.md)
 * [RTTI](cpp-rtti.md)
 * [STL](cpp-stl.md)
