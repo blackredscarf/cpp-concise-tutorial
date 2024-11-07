@@ -67,7 +67,7 @@ int main() {
     Iterator<int> it(new int(4));
     cout << todo(it) << endl;   // 4
 ```
-事实上，上面这里的结果都是返回`T::value_type`，并没有支持指针。而关键点在于，这个转换层是可以有多个版本的，即模板的偏特化 (partial specialization)。
+事实上，上面这里的结果都是返回`T::value_type`，并没有支持指针。而关键点在于，这个转换层是可以有多个版本的，即模板的特化 (specialization)。
 
 当我加入下面两个特化以后，函数就能传入指针了。
 ```cpp
